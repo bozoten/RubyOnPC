@@ -28,8 +28,6 @@ generation_config = {
 model = genai.GenerativeModel(
   model_name="gemini-1.5-flash",
   generation_config=generation_config,
-  # safety_settings = Adjust safety settings
-  # See https://ai.google.dev/gemini-api/docs/safety-settings
 )
 
 chat_session = model.start_chat(
@@ -37,7 +35,7 @@ chat_session = model.start_chat(
   ]
 )
 
-response = chat_session.send_message("Do not return any formatting such as markdown, quotes, or backticks. Provide only the raw Python script as plain text. USERS PROMPT: Hey gemini can you write me a python script that will open a text file and add a reminder of skateboarding in there?")
+response = chat_session.send_message("Do not return any formatting such as markdown, quotes, or backticks. Provide only the raw Python script USERS PROMPT: Hey gemini can you generate a python script that will write a tex file for a mock resume with clean format and then convert the tex file into docx using pandoc?")
 
 response = str(response.text)
 
