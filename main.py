@@ -1,9 +1,10 @@
 import os
 import google.generativeai as genai
 from dotenv import load_dotenv
-import tkinter as tk
+import customtkinter as ctk
 from tkinter import messagebox
 import subprocess
+import json
 
 # Load environment variables
 load_dotenv()
@@ -16,7 +17,12 @@ genai.configure(api_key=api_key)
 py_env_path = "target.py"
 
 # System prompt for the model
-systemPrompt = "Do not return any formatting such as markdown, quotes, or backticks. Provide only the raw Python script as plain text."
+systemPrompt = '''Generate a JSON object with three string variables: 
+- The first string variable should be called 'command' and contain a shell command for installations like "pip install" and only installations. 
+- The second string variable should be called 'script' and contain a Python script with proper indentation and formatting. Ensure it's formatted as raw plain text with no extra symbols, markdown, or backticks. 
+- The third string variable should be called 'response' and contain the expected output from running the script. 
+Ensure the JSON object is in plain text with no special formatting or extra characters. User's prompt '''
+
 
 # Model generation configuration
 generation_config = {
@@ -37,22 +43,33 @@ def do_task(prompt):
     """Generate a script from the prompt and save it to a file."""
     chat_session = model.start_chat(history=[])
     response = chat_session.send_message(systemPrompt + prompt)
-    response = response.text.strip('```')  
-    response = response.strip('python')
-    
-    with open(py_env_path, 'w') as file:
-        file.write(response)
-        print(response)
+    return response.text
+   # with open(py_env_path, 'w') as file:
+       # file.write(response)
 
 def execute_script():
     """Execute the generated Python script and show a success message."""
-    prompt = prompt_text.get("1.0", tk.END).strip()
+    prompt = prompt_text.get("1.0", ctk.END).strip()
     if prompt:
-        do_task(prompt=prompt)
+        response = do_task(prompt=prompt)
+        response = str(response)
+
         
+        print(response)
+        
+        json_response = json.loads(response)
+        
+        command = json_response['command']
+        script = json_response['script']
+        comment = json_response['response']
+        
+        subprocess.run(command)
+
+        with open(py_env_path, 'w') as file:
+            file.write(script)
         try:
             subprocess.run(['python', py_env_path], check=True)
-            messagebox.showinfo("Success", "Task Executed Successfully!")
+            messagebox.showinfo("Success", "Task Executed Successfully!", comment)
         except subprocess.CalledProcessError as e:
             messagebox.showerror("Execution Error", "Redo.")
             error_message = f"Failed to execute the script.\nExit Code: {e.returncode}\nOutput: {e.output.decode() if e.output else 'No output'}"
@@ -62,38 +79,38 @@ def execute_script():
             redo_string = systemPrompt + redo_string
             do_task(prompt=redo_string)
             subprocess.run(['python', py_env_path], check=True)                        
-            
         
-        prompt_text.delete("1.0", tk.END)  # Clear input field
+        prompt_text.delete("1.0", ctk.END)  # Clear input field
     else:
         messagebox.showwarning("Input Error", "Please enter a prompt.")
 
 def create_gui():
     """Set up the main GUI components."""
-    root = tk.Tk()
+    ctk.set_appearance_mode("dark")  # Set the theme to dark mode
+    ctk.set_default_color_theme("blue")  # Set the color theme
+
+    root = ctk.CTk()
     root.title("RubyOnPC")
-    
-    # Set window size
-    root.geometry("400x300")
-    
-    # Label for the prompt
-    label = tk.Label(root, text="Enter your task prompt:", font=("Arial", 12))
+    root.geometry("500x400")
+
+    frame = ctk.CTkFrame(root)
+    frame.pack(pady=20, padx=20, fill="both", expand=True)
+
+    label = ctk.CTkLabel(frame, text="Enter your task prompt:", font=("Arial", 16))
     label.pack(pady=10)
-    
-    # Text area for prompt input
+
     global prompt_text
-    prompt_text = tk.Text(root, height=5, width=40)
+    prompt_text = ctk.CTkTextbox(frame, height=150, width=400)
     prompt_text.pack(pady=10)
 
-    # Execute button
-    save_button = tk.Button(root, text="Execute Task", command=execute_script, bg="green", fg="white")
-    save_button.pack(pady=10)
-    
-    # Exit button
-    exit_button = tk.Button(root, text="Exit", command=root.quit, bg="red", fg="white")
+    execute_button = ctk.CTkButton(frame, text="Execute Task", command=execute_script, fg_color="green", hover_color="darkgreen")
+    execute_button.pack(pady=10)
+
+    exit_button = ctk.CTkButton(frame, text="Exit", command=root.quit, fg_color="red", hover_color="darkred")
     exit_button.pack(pady=5)
-    
+
     root.mainloop()
 
 # Run the GUI
-create_gui()
+if __name__ == "__main__":
+    create_gui()
