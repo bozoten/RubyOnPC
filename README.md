@@ -1,6 +1,6 @@
 # RubyOnPC: Dynamic Script Generator & Executor
 
-RubyOnPC is an innovative desktop application that leverages the power of AI to generate and execute Python scripts based on user-defined prompts. It harnesses Google’s Gemini generative AI model to automate tasks, making coding easier and more efficient.
+RubyOnPC is an innovative desktop application that leverages the AI to generate and execute Python scripts based on user-defined prompts. It harnesses Google’s Gemini generative AI model to automate tasks.
 
 ## Features
 
